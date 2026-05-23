@@ -4,9 +4,10 @@ import { MongoClient } from 'mongodb';
 const router = Router();
 
 const uri = process.env.MONGODB_URI;
-if (!uri) throw new Error("MONGODB_URI is not defined in .env");
+if (!uri) console.error("Warning: MONGODB_URI is not defined in .env");
 
-const client = new MongoClient(uri);
+// VERCEL FIX: Added fallback string to prevent crash
+const client = new MongoClient(uri || "mongodb://localhost:27017");
 const db = client.db("1000t-admin");
 
 console.log("✅ Partnership Routes Loaded");
@@ -16,7 +17,6 @@ router.post('/partnerships', async (req: Request, res: Response) => {
     await client.connect();
     const collection = db.collection("partnerships");
     
-    // Add timestamp to the data
     const newPartnership = {
       ...req.body,
       submittedAt: new Date()
@@ -35,9 +35,8 @@ router.post('/partnerships', async (req: Request, res: Response) => {
       message: 'Server error while saving partnership', 
       error 
     });
-  } finally {
-    await client.close();
   }
+  // VERCEL FIX: Removed `finally { await client.close(); }` to prevent connection pool dropping
 });
 
 export default router;

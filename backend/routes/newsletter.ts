@@ -11,21 +11,19 @@ router.post("/newsletter", async (req, res) => {
   }
 
   try {
-    // 1. Create the email transporter using your Easy Space credentials
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      port: Number(process.env.EMAIL_PORT), // 587
-      secure: false, // MUST be false for port 587
+      port: Number(process.env.EMAIL_PORT),
+      secure: false, 
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
 
-    // 2. Set up the email content
     const mailOptions = {
       from: `"1000 Tongues Website" <${process.env.EMAIL_USER}>`, 
-      to: process.env.RECEIVER_EMAIL, // Sends to your newsletter@1000tongues.co.uk inbox
+      to: process.env.RECEIVER_EMAIL, 
       subject: "🎉 New Newsletter Subscriber!",
       html: `
         <div style="font-family: sans-serif; padding: 20px;">
@@ -40,7 +38,6 @@ router.post("/newsletter", async (req, res) => {
       `,
     };
 
-    // 3. Send the email
     await transporter.sendMail(mailOptions);
 
     console.log(`✅ Email sent successfully for: ${email}`);

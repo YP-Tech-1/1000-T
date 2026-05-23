@@ -18,7 +18,9 @@ const app = express();
 // --- MONGODB CONNECTION SETUP ---
 const uri = process.env.MONGODB_URI;
 if (!uri) console.error("Warning: MONGODB_URI is not defined in .env");
-const client = new MongoClient(uri || "");
+
+// VERCEL FIX: Provide a properly formatted fallback string so it doesn't crash on boot
+const client = new MongoClient(uri || "mongodb://localhost:27017");
 
 // --- MANUAL CORS HEADERS (The "Nuclear" Option) ---
 app.use((req, res, next) => {
@@ -82,8 +84,10 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
+// Only listen locally, Vercel Serverless handles the execution in production
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
+// CRUCIAL FOR VERCEL
 export default app;

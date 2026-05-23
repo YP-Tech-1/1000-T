@@ -1,15 +1,15 @@
 import { Router } from "express";
 import { google } from "googleapis";
-import path from "path";
 
 const router = Router();
 
-// Set up Google Drive Authentication
-const KEYFILEPATH = path.join(__dirname, "../drive-credentials.json");
+// VERCEL FIX: Use Environment Variable instead of physical file for Google Auth
 const SCOPES = ["https://www.googleapis.com/auth/drive.readonly"];
+const credentialsEnv = process.env.GOOGLE_CREDENTIALS;
+const credentials = credentialsEnv ? JSON.parse(credentialsEnv) : {};
 
 const auth = new google.auth.GoogleAuth({
-  keyFile: KEYFILEPATH,
+  credentials,
   scopes: SCOPES,
 });
 
@@ -19,28 +19,18 @@ router.get("/gallery", async (req, res) => {
     
     const FOLDER_ID = "1X2bxv-CA9thWNd7YxG-PQnavPhGAFdlA"; 
 
-    // Fetch files from the specific folder
     const response = await drive.files.list({
       q: `'${FOLDER_ID}' in parents and mimeType contains 'image/' and trashed = false`,
-      // --- CHANGE 1: We specifically ask Google for the 'thumbnailLink' ---
       fields: "files(id, name, thumbnailLink)",
       orderBy: "createdTime desc", 
     });
 
-// Map the files to direct viewing URLs
     const images = response.data.files?.map(file => {
-      
-      // 1. Try to get the high-res thumbnail link if Google provided it
       let finalUrl = file.thumbnailLink ? file.thumbnailLink.replace(/=s\d+/, "=s1080") : "";
 
-      // 2. BULLETPROOF FALLBACK: If Google hid the thumbnailLink, force it using the direct thumbnail endpoint
       if (!finalUrl) {
         finalUrl = `https://drive.google.com/thumbnail?id=${file.id}&sz=w1080`;
       }
-
-      // Console log so we can see exactly what link is being generated in the terminal!
-      
-      // console.log(`🔗 Generated URL for ${file.name}:`, finalUrl);
 
       return {
         id: file.id,

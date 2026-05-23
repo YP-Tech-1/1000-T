@@ -2,15 +2,15 @@ import { Router } from "express";
 import { MongoClient } from "mongodb";
 
 const router = Router();
-const uri = process.env.MONGODB_URI || "";
 
-// FIX: Create client OUTSIDE the request handler to prevent connection errors
-const client = new MongoClient(uri);
+const uri = process.env.MONGODB_URI;
+if (!uri) console.error("Warning: MONGODB_URI is not defined in .env");
+
+// VERCEL FIX: Added fallback string to prevent crash
+const client = new MongoClient(uri || "mongodb://localhost:27017");
 
 console.log("✅ Volunteer Routes Loaded");
 
-// 1. POST: Save a new volunteer
-// FIX: Changed to "/volunteer" (Singular) to match your Frontend code
 router.post("/volunteer", async (req, res) => {
   try {
     await client.connect();
@@ -30,8 +30,6 @@ router.post("/volunteer", async (req, res) => {
   }
 });
 
-// 2. GET: Fetch all volunteers (This fixes "Cannot GET")
-// Endpoint: /api/volunteer
 router.get("/volunteer", async (req, res) => {
   try {
     await client.connect();
